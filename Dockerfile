@@ -32,7 +32,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 # Install Prisma CLI globally for migrations
-RUN npm install -g @prisma/cli
+RUN npm install -g prisma
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
