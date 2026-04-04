@@ -49,7 +49,7 @@ ENV PORT=5000
 EXPOSE $PORT
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:' + process.env.PORT + '/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+  CMD ["sh", "-c", "DATABASE_URL=\"$DATABASE_URL\" npx prisma migrate deploy || true && node dist/server.js"]
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/server.js"]

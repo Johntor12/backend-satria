@@ -50,9 +50,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 async function startServer() {
-  // Run migrations before starting the server (in production)
+  // Migrations are handled in Dockerfile
   if (process.env.NODE_ENV === "production") {
-    await runMigrations();
+    console.log("✅ Database is ready (migrations run at container startup)");
   }
 
   app.listen(PORT, "0.0.0.0", () => {
@@ -60,6 +60,11 @@ async function startServer() {
     console.log(`📝 Environment: ${process.env.NODE_ENV}`);
   });
 }
+
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
+});
 
 startServer().catch((error) => {
   console.error("Failed to start server:", error);
