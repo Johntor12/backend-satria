@@ -138,7 +138,7 @@ backend-satria/
 | POST   | `/api/company-collections`     | Create company    | ✅            |
 | GET    | `/api/company-collections`     | Get all companies | ✅            |
 | GET    | `/api/company-collections/:id` | Get company by ID | ✅            |
-| PATCH  | `/api/company-collections/:id` | Update company    | ✅            |
+| PUT    | `/api/company-collections/:id` | Update company    | ✅            |
 | DELETE | `/api/company-collections/:id` | Delete company    | ✅            |
 
 ### Bookmarks
@@ -148,15 +148,21 @@ backend-satria/
 | POST   | `/api/bookmarks`                | Create bookmark    | ✅            |
 | GET    | `/api/bookmarks`                | Get all bookmarks  | ✅            |
 | GET    | `/api/bookmarks/:id`            | Get bookmark by ID | ✅            |
-| PATCH  | `/api/bookmarks/:id`            | Update bookmark    | ✅            |
+| PUT    | `/api/bookmarks/:id`            | Update bookmark    | ✅            |
 | DELETE | `/api/bookmarks/:id`            | Delete bookmark    | ✅            |
 | GET    | `/api/bookmarks/status/:status` | Get by status      | ✅            |
+| GET    | `/api/bookmarks/companies/status/:status` | Get unique companies by bookmark status | ✅ |
 
 ### Health
 
 | Method | Endpoint      | Description          |
 | ------ | ------------- | -------------------- |
 | GET    | `/api/health` | Server health status |
+
+### API Docs
+
+- Swagger UI: `/api/docs`
+- OpenAPI JSON: `/api/openapi.json`
 
 ## 🔐 Authentication
 

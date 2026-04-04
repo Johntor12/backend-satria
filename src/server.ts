@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import healthRoutes from "./routes/health";
+import docsRoutes from "./routes/docs";
 import companyCollectionRoutes from "./routes/companyCollection";
 import bookmarkCollectionRoutes from "./routes/bookmarkCollection";
 import authRoutes from "./routes/authRoutes";
@@ -35,6 +36,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Routes
+app.use("/api", docsRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/company-collections", companyCollectionRoutes);
 app.use("/api/bookmarks", bookmarkCollectionRoutes);
