@@ -26,6 +26,7 @@ npm run docker:up
 ```
 
 This starts both PostgreSQL and the API service. Services will:
+
 - Create a new PostgreSQL database on port 5432
 - Build and start the API on port 5000
 - Run health checks to ensure both services are ready
@@ -83,6 +84,7 @@ Railway is recommended for beginners as it automatically handles Docker deployme
    - Watch deployment in "Deploy" tab
 
 #### Important Notes:
+
 - Railway detects Node.js project automatically
 - Runs `npm install` and `npm run build` automatically
 - Runs `npm start` by default
@@ -119,6 +121,7 @@ Railway is recommended for beginners as it automatically handles Docker deployme
    - Runs migrations on deploy
 
 #### Important Notes:
+
 - Free tier available ($0/month, services spin down after 15 min inactivity)
 - Paid tier ($7+/month) recommended for production
 
@@ -139,11 +142,13 @@ Railway is recommended for beginners as it automatically handles Docker deployme
    - Security group: Allow HTTP (80), HTTPS (443), SSH (22)
 
 3. **SSH into EC2 instance:**
+
    ```bash
    ssh -i your-key.pem ubuntu@your-ec2-ip
    ```
 
 4. **Install Docker:**
+
    ```bash
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
@@ -151,12 +156,14 @@ Railway is recommended for beginners as it automatically handles Docker deployme
    ```
 
 5. **Clone repository:**
+
    ```bash
    git clone https://github.com/yourusername/backend-satria.git
    cd backend-satria
    ```
 
 6. **Create .env file:**
+
    ```bash
    cp .env.example .env
    # Edit .env with production values:
@@ -166,22 +173,25 @@ Railway is recommended for beginners as it automatically handles Docker deployme
    ```
 
 7. **Deploy with Docker Compose:**
+
    ```bash
    docker-compose up -d
    ```
 
 8. **Set up reverse proxy (Nginx):**
+
    ```bash
    sudo apt install nginx
    sudo nano /etc/nginx/sites-available/default
    ```
-   
+
    Add:
+
    ```nginx
    server {
        listen 80;
        server_name yourdomain.com;
-       
+
        location / {
            proxy_pass http://localhost:5000;
            proxy_set_header Host $host;
@@ -203,22 +213,26 @@ Heroku recently stopped free tier but paid dyos are available.
 #### Steps:
 
 1. **Install Heroku CLI:**
+
    ```bash
    curl https://cli-assets.heroku.com/install.sh | sh
    ```
 
 2. **Login and create app:**
+
    ```bash
    heroku login
    heroku create satria-api
    ```
 
 3. **Add PostgreSQL:**
+
    ```bash
    heroku addons:create heroku-postgresql:hobby-dev
    ```
 
 4. **Set environment variables:**
+
    ```bash
    heroku config:set NODE_ENV=production
    heroku config:set JWT_SECRET=your_jwt_secret_here
@@ -226,6 +240,7 @@ Heroku recently stopped free tier but paid dyos are available.
    ```
 
 5. **Deploy:**
+
    ```bash
    git push heroku main
    ```
@@ -250,13 +265,13 @@ Heroku recently stopped free tier but paid dyos are available.
 
 ## Environment Variables Reference
 
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `JWT_SECRET` | Secret for signing JWT tokens | 32+ character random string |
-| `NODE_ENV` | Environment mode | `production` |
-| `PORT` | Server port | `5000` |
-| `CORS_ORIGIN` | Allowed frontend domains | `https://yourdomain.com` |
+| Variable       | Purpose                       | Example                               |
+| -------------- | ----------------------------- | ------------------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string  | `postgresql://user:pass@host:5432/db` |
+| `JWT_SECRET`   | Secret for signing JWT tokens | 32+ character random string           |
+| `NODE_ENV`     | Environment mode              | `production`                          |
+| `PORT`         | Server port                   | `5000`                                |
+| `CORS_ORIGIN`  | Allowed frontend domains      | `https://yourdomain.com`              |
 
 ## Generating JWT_SECRET
 
@@ -267,32 +282,38 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ## Health Check Endpoint
 
 Test if API is running:
+
 ```bash
 curl https://yourdomain.com/api/health
 ```
 
 Expected response:
+
 ```json
-{"status": "ok"}
+{ "status": "ok" }
 ```
 
 ## Troubleshooting
 
 **Database Connection Error:**
+
 - Verify DATABASE_URL format: `postgresql://user:password@host:port/database?schema=public`
 - Check PostgreSQL is running and accessible
 - Verify network security rules allow connection
 
 **JWT Token Issues:**
+
 - Ensure JWT_SECRET is consistent across deployments
 - Check token expiration (currently 7 days)
 - Verify Authorization header format: `Bearer <token>`
 
 **CORS Errors:**
+
 - Verify CORS_ORIGIN matches frontend domain exactly (include protocol)
 - Check frontend is sending requests with credentials if needed
 
 **Build Failures:**
+
 - Review build logs for TypeScript errors
 - Ensure all environment variables are set
 - Check Dockerfile compatibility with your system
@@ -302,11 +323,13 @@ Expected response:
 Prisma migrations are run automatically by the `npm run deploy` script before starting the server.
 
 To manually run migrations:
+
 ```bash
 npm run migrate
 ```
 
 To create new migration:
+
 ```bash
 npm run migrate:dev -- --name migration_name
 ```
@@ -314,6 +337,7 @@ npm run migrate:dev -- --name migration_name
 ## Monitoring & Logging
 
 Recommended logging services:
+
 - **Railway/Render:** Built-in log viewing in dashboard
 - **AWS:** CloudWatch Logs
 - **Datadog:** APM and log aggregation
@@ -333,6 +357,7 @@ Recommended logging services:
 ## Scaling Considerations
 
 When traffic increases:
+
 - **Vertical scaling:** Increase server memory/CPU
 - **Horizontal scaling:** Run multiple API instances behind load balancer
 - **Database:** Consider read replicas or connection pooling

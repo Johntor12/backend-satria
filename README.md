@@ -5,6 +5,7 @@ Production-ready Express.js backend with PostgreSQL, user authentication, compan
 ## 🚀 Quick Start
 
 ### Development (Localhost)
+
 ```bash
 # 1. Install dependencies
 npm install
@@ -25,6 +26,7 @@ npm run dev
 Server runs on `http://localhost:5000`
 
 ### Production (Docker)
+
 ```bash
 # 1. Build Docker image
 npm run docker:build
@@ -122,41 +124,46 @@ backend-satria/
 ## 🔌 API Endpoints
 
 ### Authentication
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---|
-| POST | `/api/auth/register` | Create new user | ❌ |
-| POST | `/api/auth/login` | Login user | ❌ |
-| GET | `/api/auth/me` | Get current user | ✅ |
+
+| Method | Endpoint             | Description      | Auth Required |
+| ------ | -------------------- | ---------------- | ------------- |
+| POST   | `/api/auth/register` | Create new user  | ❌            |
+| POST   | `/api/auth/login`    | Login user       | ❌            |
+| GET    | `/api/auth/me`       | Get current user | ✅            |
 
 ### Companies
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---|
-| POST | `/api/company-collections` | Create company | ✅ |
-| GET | `/api/company-collections` | Get all companies | ✅ |
-| GET | `/api/company-collections/:id` | Get company by ID | ✅ |
-| PATCH | `/api/company-collections/:id` | Update company | ✅ |
-| DELETE | `/api/company-collections/:id` | Delete company | ✅ |
+
+| Method | Endpoint                       | Description       | Auth Required |
+| ------ | ------------------------------ | ----------------- | ------------- |
+| POST   | `/api/company-collections`     | Create company    | ✅            |
+| GET    | `/api/company-collections`     | Get all companies | ✅            |
+| GET    | `/api/company-collections/:id` | Get company by ID | ✅            |
+| PATCH  | `/api/company-collections/:id` | Update company    | ✅            |
+| DELETE | `/api/company-collections/:id` | Delete company    | ✅            |
 
 ### Bookmarks
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---|
-| POST | `/api/bookmarks` | Create bookmark | ✅ |
-| GET | `/api/bookmarks` | Get all bookmarks | ✅ |
-| GET | `/api/bookmarks/:id` | Get bookmark by ID | ✅ |
-| PATCH | `/api/bookmarks/:id` | Update bookmark | ✅ |
-| DELETE | `/api/bookmarks/:id` | Delete bookmark | ✅ |
-| GET | `/api/bookmarks/status/:status` | Get by status | ✅ |
+
+| Method | Endpoint                        | Description        | Auth Required |
+| ------ | ------------------------------- | ------------------ | ------------- |
+| POST   | `/api/bookmarks`                | Create bookmark    | ✅            |
+| GET    | `/api/bookmarks`                | Get all bookmarks  | ✅            |
+| GET    | `/api/bookmarks/:id`            | Get bookmark by ID | ✅            |
+| PATCH  | `/api/bookmarks/:id`            | Update bookmark    | ✅            |
+| DELETE | `/api/bookmarks/:id`            | Delete bookmark    | ✅            |
+| GET    | `/api/bookmarks/status/:status` | Get by status      | ✅            |
 
 ### Health
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Server health status |
+
+| Method | Endpoint      | Description          |
+| ------ | ------------- | -------------------- |
+| GET    | `/api/health` | Server health status |
 
 ## 🔐 Authentication
 
 ### Getting Started
 
 1. **Register a new user:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -169,6 +176,7 @@ curl -X POST http://localhost:5000/api/auth/register \
 ```
 
 2. **Login:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -179,6 +187,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 ```
 
 Response includes JWT token:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -192,6 +201,7 @@ Response includes JWT token:
 ```
 
 3. **Use token for protected endpoints:**
+
 ```bash
 curl -X GET http://localhost:5000/api/company-collections \
   -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
@@ -201,16 +211,17 @@ curl -X GET http://localhost:5000/api/company-collections \
 
 Risk scores are calculated based on 6 weighted signals:
 
-| Signal | Weight | Range | Impact |
-|--------|--------|-------|--------|
-| ETR Score | 0.20 | 0-1000 | Environmental/ESG risk |
-| Margin Score | 0.15 | 0-100 | Financial margin risk |
-| RP Haven Score | 0.20 | 0-1000 | Risk paradises exposure |
-| Debt Score | 0.15 | 0-100 | Leverage risk |
-| Ownership Score | 0.15 | 0-100 | Ownership structure risk |
-| Conduct Score | 0.15 | 0-100 | Historical conduct risk |
+| Signal          | Weight | Range  | Impact                   |
+| --------------- | ------ | ------ | ------------------------ |
+| ETR Score       | 0.20   | 0-1000 | Environmental/ESG risk   |
+| Margin Score    | 0.15   | 0-100  | Financial margin risk    |
+| RP Haven Score  | 0.20   | 0-1000 | Risk paradises exposure  |
+| Debt Score      | 0.15   | 0-100  | Leverage risk            |
+| Ownership Score | 0.15   | 0-100  | Ownership structure risk |
+| Conduct Score   | 0.15   | 0-100  | Historical conduct risk  |
 
 **Risk Tiers:**
+
 - CRITICAL: Score > 750
 - HIGH: Score 500-750
 - MEDIUM: Score 250-500
@@ -245,6 +256,7 @@ npm run prod             # Run production server locally
 ## 📊 Database Schema
 
 ### User Model
+
 ```typescript
 model User {
   id                String @id @default(cuid())
@@ -254,13 +266,14 @@ model User {
   fullName          String
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  
+
   companies         CompanyCollection[]
   bookmarks         Bookmark[]
 }
 ```
 
 ### CompanyCollection Model
+
 ```typescript
 model CompanyCollection {
   id                String @id @default(cuid())
@@ -268,7 +281,7 @@ model CompanyCollection {
   companyName       String
   riskScore         Float
   riskTier          RiskTier
-  
+
   // Risk signals (weighted calculation)
   etr_score         Float
   margin_score      Float
@@ -276,16 +289,17 @@ model CompanyCollection {
   debt_score        Float
   ownership_score   Float
   conduct_score     Float
-  
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  
+
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
   bookmarks         BookmarkCompany[]
 }
 ```
 
 ### Bookmark Model
+
 ```typescript
 model Bookmark {
   id                String @id @default(cuid())
@@ -293,10 +307,10 @@ model Bookmark {
   name              String
   description       String?
   status            BookmarkStatus @default(PENDING)
-  
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  
+
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
   companies         BookmarkCompany[]
 }
@@ -305,17 +319,20 @@ model Bookmark {
 ## 🐳 Docker Deployment
 
 ### Local Testing
+
 ```bash
 npm run docker:up
 ```
 
 This starts:
+
 - PostgreSQL 15 on port 5432
 - API server on port 5000
 
 ### Production Deployment
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed guides on deploying to:
+
 - **Railway.app** (Recommended - easiest)
 - Render.com
 - AWS EC2 + RDS
@@ -326,11 +343,13 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed guides on deploying to:
 ## 🔍 Health Checks
 
 ### Database Connection
+
 ```bash
 curl http://localhost:5000/api/health
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -345,15 +364,16 @@ Response:
 
 Required variables in `.env`:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `JWT_SECRET` | Secret for signing JWT tokens | 32+ character random string |
-| `NODE_ENV` | Environment mode | `production` or `development` |
-| `PORT` | Server port | `5000` |
-| `CORS_ORIGIN` | Allowed frontend domains | `https://yourdomain.com` |
+| Variable       | Description                   | Example                               |
+| -------------- | ----------------------------- | ------------------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string  | `postgresql://user:pass@host:5432/db` |
+| `JWT_SECRET`   | Secret for signing JWT tokens | 32+ character random string           |
+| `NODE_ENV`     | Environment mode              | `production` or `development`         |
+| `PORT`         | Server port                   | `5000`                                |
+| `CORS_ORIGIN`  | Allowed frontend domains      | `https://yourdomain.com`              |
 
 ### Generating JWT_SECRET
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -362,17 +382,18 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### Common HTTP Status Codes
 
-| Code | Meaning | Example |
-|------|---------|---------|
-| 200 | Success | Company retrieved |
-| 201 | Created | New company created |
-| 400 | Bad Request | Invalid input data |
-| 401 | Unauthorized | Missing JWT token |
-| 403 | Forbidden | User doesn't own resource |
-| 404 | Not Found | Resource doesn't exist |
-| 500 | Server Error | Database connection failed |
+| Code | Meaning      | Example                    |
+| ---- | ------------ | -------------------------- |
+| 200  | Success      | Company retrieved          |
+| 201  | Created      | New company created        |
+| 400  | Bad Request  | Invalid input data         |
+| 401  | Unauthorized | Missing JWT token          |
+| 403  | Forbidden    | User doesn't own resource  |
+| 404  | Not Found    | Resource doesn't exist     |
+| 500  | Server Error | Database connection failed |
 
 ### Error Response Format
+
 ```json
 {
   "success": false,
@@ -384,6 +405,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ## 🧪 Testing Endpoints
 
 ### 1. Register and Login Flow
+
 ```bash
 # Register
 curl -X POST http://localhost:5000/api/auth/register \
@@ -399,6 +421,7 @@ echo "Token: $TOKEN"
 ```
 
 ### 2. Create Company
+
 ```bash
 curl -X POST http://localhost:5000/api/company-collections \
   -H "Authorization: Bearer $TOKEN" \
@@ -415,6 +438,7 @@ curl -X POST http://localhost:5000/api/company-collections \
 ```
 
 ### 3. Get Companies
+
 ```bash
 curl -X GET http://localhost:5000/api/company-collections \
   -H "Authorization: Bearer $TOKEN"
@@ -430,32 +454,41 @@ curl -X GET http://localhost:5000/api/company-collections \
 ## 🐛 Troubleshooting
 
 ### Database Connection Failed
+
 ```
 Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
+
 **Solution:** Ensure PostgreSQL is running and DATABASE_URL is correct.
 
 ### Port Already in Use
+
 ```
 Error: listen EADDRINUSE :::5000
 ```
+
 **Solution:** Change PORT in .env or kill process: `lsof -i :5000 | kill -9 <PID>`
 
 ### JWT Token Invalid
+
 ```
 Error: Unauthorized - Invalid token
 ```
+
 **Solution:** Ensure JWT_SECRET is consistent and token hasn't expired (7 days).
 
 ### Docker Permission Denied
+
 ```
 permission denied while trying to connect to the Docker daemon
 ```
+
 **Solution:** Add user to docker group: `sudo usermod -aG docker $USER`
 
 ## 📞 Support
 
 For issues or questions:
+
 1. Check logs with `npm run docker:logs`
 2. Review error messages and status codes
 3. Verify all environment variables are set
@@ -472,6 +505,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 ---
 
 Built with ❤️ using Express.js, PostgreSQL, and TypeScript
+
 ### 3. Configure Environment Variables
 
 Copy `.env.example` to `.env` and update with your database credentials:
