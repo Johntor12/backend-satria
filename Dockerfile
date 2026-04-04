@@ -31,18 +31,25 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm ci --only=production
 
+# Install Prisma CLI globally for migrations
+RUN npm install -g @prisma/cli
+
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/generated ./src/generated
+
+# Copy Prisma folder for migrations
+COPY --from=builder /app/prisma ./prisma
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
 
-EXPOSE 5000
+ENV PORT=5000
+EXPOSE $PORT
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+  CMD node -e "require('http').get('http://localhost:' + process.env.PORT + '/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "prisma migrate deploy && node dist/server.js"]
