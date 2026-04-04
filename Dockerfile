@@ -52,4 +52,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:' + process.env.PORT + '/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "prisma migrate deploy && node dist/server.js"]
+CMD ["node", "dist/server.js"]

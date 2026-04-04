@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { runMigrations } from "./utils/runMigrations";
 import healthRoutes from "./routes/health";
 import companyCollectionRoutes from "./routes/companyCollection";
 import bookmarkCollectionRoutes from "./routes/bookmarkCollection";
@@ -9,7 +10,7 @@ import authRoutes from "./routes/authRoutes";
 dotenv.config();
 
 const app: Express = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || "5000", 10);
 
 // Middleware
 app.use(cors());
@@ -48,9 +49,21 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+async function startServer() {
+  // Run migrations before starting the server (in production)
+  if (process.env.NODE_ENV === "production") {
+    await runMigrations();
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
 });
 
 export default app;
