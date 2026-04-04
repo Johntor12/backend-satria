@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import prisma from "../prisma/client";
-import { hashPassword, comparePassword, generateToken } from "../utils/authUtils";
+import {
+  hashPassword,
+  comparePassword,
+  generateToken,
+} from "../utils/authUtils";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {

@@ -5,9 +5,11 @@ This guide covers safely migrating from development to production environments.
 ## Understanding Your Database Setup
 
 ### Current Schema (Existing)
+
 Your production-ready database includes:
 
 **User Model**
+
 - id (unique identifier)
 - email (unique)
 - username (unique)
@@ -16,6 +18,7 @@ Your production-ready database includes:
 - createdAt, updatedAt (timestamps)
 
 **CompanyCollection Model**
+
 - id (unique identifier)
 - userId (foreign key to User)
 - companyName
@@ -24,6 +27,7 @@ Your production-ready database includes:
 - createdAt, updatedAt
 
 **Bookmark Model**
+
 - id (unique identifier)
 - userId (foreign key to User)
 - name
@@ -32,6 +36,7 @@ Your production-ready database includes:
 - createdAt, updatedAt
 
 **BookmarkCompany (Junction Table)**
+
 - bookmarkId (foreign key to Bookmark)
 - companyId (foreign key to CompanyCollection)
 - bookmarkedAt (timestamp)
@@ -58,6 +63,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO satria_prod;
 ```
 
 **For Railway.app/Render.com:**
+
 - Database is created automatically when you add PostgreSQL plugin
 - Connection string provided in platform dashboard
 
@@ -196,6 +202,7 @@ curl http://localhost:5000/api/health
 ## Verification After Migration
 
 ### 1. Database Connectivity
+
 ```bash
 # Test from application
 curl https://yourdomain.com/api/health
@@ -203,12 +210,14 @@ curl https://yourdomain.com/api/health
 ```
 
 ### 2. Tables Exist
+
 ```bash
 psql -U satria_prod -d satria_db_prod -c "\dt"
 # Should show: users, company_collections, bookmarks, bookmark_companies
 ```
 
 ### 3. Authentication Works
+
 ```bash
 # Register new user
 curl -X POST https://yourdomain.com/api/auth/register \
@@ -230,6 +239,7 @@ curl -X POST https://yourdomain.com/api/auth/login \
 ```
 
 ### 4. Protected Endpoints Work
+
 ```bash
 # Get token from login response
 TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -240,6 +250,7 @@ curl -X GET https://yourdomain.com/api/company-collections \
 ```
 
 ### 5. Data Isolation Works
+
 ```bash
 # Create two users and verify data is separated
 
@@ -259,6 +270,7 @@ curl -X GET https://yourdomain.com/api/company-collections \
 ## Rollback Procedure (If Something Goes Wrong)
 
 ### Step 1: Stop the Application
+
 ```bash
 # Docker
 npm run docker:down
@@ -270,11 +282,13 @@ kill -9 <PID>
 ```
 
 ### Step 2: Restore Database from Backup
+
 ```bash
 psql -U satria_prod -d satria_db_prod < backup-$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### Step 3: Restart with Previous Version
+
 ```bash
 # If using Docker
 docker pull previous-image-version
@@ -286,6 +300,7 @@ npm run deploy
 ```
 
 ### Step 4: Investigate Issue
+
 ```bash
 # Check logs
 npm run docker:logs
@@ -322,6 +337,7 @@ tail -f logs/application.log
    - Easy rollback if issues
 
 ### Recommended Approach for Satria
+
 Given your system size, **scheduled maintenance** is best:
 
 ```bash
@@ -361,6 +377,7 @@ Given your system size, **scheduled maintenance** is best:
    - Plan for growth
 
 ### Health Check Dashboard
+
 ```bash
 # Create simple monitoring script
 curl https://yourdomain.com/api/health
@@ -371,10 +388,13 @@ curl https://yourdomain.com/api/health
 ## Common Migration Issues & Solutions
 
 ### Issue: "Database already exists"
+
 ```
 ERROR: database "satria_db_prod" already exists
 ```
+
 **Solution:** Use existing database or drop and recreate
+
 ```bash
 # Drop existing (careful!)
 dropdb -U postgres satria_db_prod
@@ -384,10 +404,13 @@ createdb -U postgres -O satria_prod satria_db_prod
 ```
 
 ### Issue: "Connection refused"
+
 ```
 Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
+
 **Solution:** Ensure PostgreSQL is running and DATABASE_URL is correct
+
 ```bash
 # Check PostgreSQL
 sudo systemctl status postgresql
@@ -397,20 +420,26 @@ echo $DATABASE_URL
 ```
 
 ### Issue: "Permission denied" on tables
+
 ```
 ERROR: permission denied for relation users
 ```
+
 **Solution:** Grant permissions to user
+
 ```bash
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO satria_prod;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO satria_prod;
 ```
 
 ### Issue: "Foreign key constraint failed"
+
 ```
 ERROR: insert or update on table "company_collections" violates foreign key constraint
 ```
+
 **Solution:** Ensure users exist before companies
+
 ```bash
 # Check
 SELECT COUNT(*) FROM "User";
@@ -422,6 +451,7 @@ npm run seed
 ## Best Practices Summary
 
 ✅ **DO:**
+
 - Backup before any migration
 - Test migrations locally first
 - Run migrations with DATABASE_URL set
@@ -431,6 +461,7 @@ npm run seed
 - Document all changes
 
 ❌ **DON'T:**
+
 - Skip backups
 - Migrate during peak hours
 - Mix old and new code versions

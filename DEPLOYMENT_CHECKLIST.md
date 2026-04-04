@@ -5,6 +5,7 @@ Complete this checklist before deploying to production. Each item should be veri
 ## Pre-Deployment (1-2 Days Before)
 
 ### Code & Build Verification
+
 - [ ] All code changes committed to git
 - [ ] No uncommitted files: `git status` shows clean
 - [ ] Latest code pulled: `git pull origin main`
@@ -13,6 +14,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] Tests pass: `npm test --if-present`
 
 ### Documentation Review
+
 - [ ] README.md updated with latest info
 - [ ] API endpoints documented
 - [ ] Environment variables documented in .env.example
@@ -20,6 +22,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] Team members notified
 
 ### Security Audit
+
 - [ ] No secrets in git: Check `.env` not committed
 - [ ] Passwords use bcrypt hashing
 - [ ] JWT_SECRET is 32+ characters
@@ -28,6 +31,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] No console.log statements with sensitive data
 
 ### Database Preparation
+
 - [ ] Production database created
 - [ ] Backup of any existing data taken
 - [ ] Connection string verified: `postgresql://user:pass@host:port/db`
@@ -37,12 +41,14 @@ Complete this checklist before deploying to production. Each item should be veri
 ## Deployment Day (Execution Phase)
 
 ### 48 Hours Before
+
 - [ ] Notify team and stakeholders of deployment window
 - [ ] Confirm downtime window (if needed)
 - [ ] Brief team on rollback procedure
 - [ ] Prepare rollback database backup
 
 ### 2 Hours Before
+
 - [ ] Announce maintenance window to users
 - [ ] Final backup of production database: `pg_dump -U user -d dbname > backup-$(date +%Y%m%d).sql`
 - [ ] Verify rollback plan is accessible
@@ -51,6 +57,7 @@ Complete this checklist before deploying to production. Each item should be veri
 ### During Deployment
 
 #### Step 1: Environment Setup
+
 - [ ] Set environment variables
   ```bash
   export NODE_ENV=production
@@ -61,33 +68,39 @@ Complete this checklist before deploying to production. Each item should be veri
   ```
 
 #### Step 2: Build Application
+
 - [ ] Build application: `npm run build`
 - [ ] Verify dist/ folder created
 - [ ] Check for build errors
 
 #### Step 3: Run Migrations
+
 - [ ] Run migrations: `npm run migrate`
 - [ ] Verify all tables created
 - [ ] No migration errors in logs
 - [ ] Database schema matches schema.prisma
 
 #### Step 4: Seed Data (If Needed)
+
 - [ ] Optional: `npm run seed` (creates sample data)
 - [ ] Optional: `npm run seed:bookmarks`
 - [ ] Verify seed completed successfully
 
 #### Step 5: Start Application
+
 - [ ] Start production server: `npm run prod`
 - [ ] Server starts without errors
 - [ ] Listening on port 5000
 - [ ] No database connection errors
 
 #### Step 6: Health Checks
+
 - [ ] Test health endpoint: `curl http://localhost:5000/api/health`
 - [ ] Response contains `"database": "connected"`
 - [ ] Status code is 200
 
 #### Step 7: Smoke Tests (Critical Paths)
+
 - [ ] User registration: `POST /api/auth/register`
 - [ ] User login: `POST /api/auth/login`
 - [ ] Get current user: `GET /api/auth/me` (with token)
@@ -99,6 +112,7 @@ Complete this checklist before deploying to production. Each item should be veri
 ### After Service Restart
 
 #### Monitoring Phase (First Hour)
+
 - [ ] Monitor error logs: `npm run docker:logs`
 - [ ] Response time normal (~100-200ms)
 - [ ] No spike in error rate
@@ -106,6 +120,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] Memory usage stable
 
 #### Monitoring Phase (First Day)
+
 - [ ] No unexpected errors in logs
 - [ ] API response times consistent
 - [ ] All endpoints functioning
@@ -115,6 +130,7 @@ Complete this checklist before deploying to production. Each item should be veri
 ## Post-Deployment (After 24 Hours)
 
 ### Verification Tests
+
 - [ ] All endpoints tested with real data
 - [ ] User data properly isolated
 - [ ] Authentication tokens working
@@ -124,6 +140,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] Database queries optimized
 
 ### Performance Check
+
 - [ ] Page load times < 2 seconds
 - [ ] API response times < 500ms
 - [ ] Database connection pool stable
@@ -131,6 +148,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] CPU usage < 50%
 
 ### Security Verification
+
 - [ ] No sensitive data in logs
 - [ ] JWT tokens secure
 - [ ] CORS working correctly
@@ -138,6 +156,7 @@ Complete this checklist before deploying to production. Each item should be veri
 - [ ] SQL injection protection working
 
 ### Backup & Recovery
+
 - [ ] Backup created and verified
 - [ ] Backup stored safely (off-site)
 - [ ] Recovery procedure tested
@@ -146,11 +165,13 @@ Complete this checklist before deploying to production. Each item should be veri
 ## Rollback Procedure (If Issues Occur)
 
 ### Immediate Actions
+
 - [ ] STOP: Don't proceed with troubleshooting if critical
 - [ ] NOTIFY: Tell team and stakeholders immediately
 - [ ] ISOLATE: Remove from load balancer if applicable
 
 ### Step 1: Stop Current Service
+
 ```bash
 # Docker
 npm run docker:down
@@ -160,6 +181,7 @@ kill -9 <PID>
 ```
 
 ### Step 2: Restore Previous Version
+
 ```bash
 # Option A: From git
 git checkout previous-working-commit
@@ -171,6 +193,7 @@ rm -rf dist/
 ```
 
 ### Step 3: Restore Database
+
 ```bash
 # Restore from backup
 psql -U satria_prod -d satria_db_prod < backup-20240115.sql
@@ -180,18 +203,21 @@ SELECT COUNT(*) FROM "User";
 ```
 
 ### Step 4: Start Previous Version
+
 ```bash
 npm run prod
 # or docker-compose up -d
 ```
 
 ### Step 5: Verify Rollback Success
+
 - [ ] Health endpoint responds
 - [ ] Users can login
 - [ ] Data is intact
 - [ ] No errors in logs
 
 ### Step 6: Post-Incident
+
 - [ ] Document what went wrong
 - [ ] Identify root cause
 - [ ] Create GitHub issue to fix
@@ -201,18 +227,21 @@ npm run prod
 ## Production Monitoring Setup
 
 ### Daily Tasks
+
 - [ ] Check logs for errors
 - [ ] Monitor database size growth
 - [ ] Verify backups completed
 - [ ] Review response times
 
 ### Weekly Tasks
+
 - [ ] Check disk space usage
 - [ ] Review user feedback
 - [ ] Update dependencies if needed
 - [ ] Test backup restoration
 
 ### Monthly Tasks
+
 - [ ] Review performance metrics
 - [ ] Update security patches
 - [ ] Run full system test
@@ -245,6 +274,7 @@ Your deployment is successful when:
 ## Post-Deployment Communication
 
 ### Notify Team
+
 ```
 Subject: Satria Backend Deployment Complete ✅
 
@@ -265,6 +295,7 @@ No user action required.
 ```
 
 ### Update Status Page
+
 - Mark as "Operational"
 - Add deployment notes
 - Include end time
@@ -282,16 +313,16 @@ No user action required.
 By checking below, you confirm the deployment was successful and ready for production:
 
 - [ ] **DevOps Engineer:** Deployment completed successfully
-  - Name: _________________ Date: _______
+  - Name: ********\_******** Date: **\_\_\_**
 
 - [ ] **QA/Testing:** Smoke tests passed
-  - Name: _________________ Date: _______
+  - Name: ********\_******** Date: **\_\_\_**
 
 - [ ] **Database Admin:** Data integrity verified
-  - Name: _________________ Date: _______
+  - Name: ********\_******** Date: **\_\_\_**
 
 - [ ] **Product Manager:** Business requirements met
-  - Name: _________________ Date: _______
+  - Name: ********\_******** Date: **\_\_\_**
 
 ---
 
