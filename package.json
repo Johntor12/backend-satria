@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "npx prisma generate && tsc && rm -rf dist/generated && cp -R src/generated dist/generated",
@@ -12,6 +15,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx prisma migrate deploy",
     "migrate:dev": "npx prisma migrate dev",
+    "migrate:supabase": "bash scripts/migrate-to-supabase.sh",
     "deploy": "npm run build && npm run migrate",
     "docker:build": "docker build -t satria-api:latest .",
     "docker:up": "docker-compose up -d",

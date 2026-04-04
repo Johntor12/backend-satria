@@ -90,7 +90,7 @@ Railway is recommended for beginners as it automatically handles Docker deployme
 - Runs `npm start` by default
 - Free tier includes $5/month credit
 
-### Option 2: Render.com
+### Option 2: Render.com (Recommended Free Option)
 
 #### Steps:
 
@@ -101,29 +101,27 @@ Railway is recommended for beginners as it automatically handles Docker deployme
    - Connect repository
 
 3. **Configure settings:**
-   - **Name:** satria-api
-   - **Environment:** Docker
-   - **Region:** Choose closest to users
-   - **Branch:** main
+   - Prefer `Blueprint` deployment so Render reads `render.yaml`
+   - Service type: `Web Service`
+   - Runtime: `Node`
+   - Branch: `main`
 
 4. **Add Environment Variables:**
    - NODE_ENV=production
    - JWT_SECRET=[generate random key]
    - CORS_ORIGIN=https://yourdomain.com
-   - DATABASE_URL=postgresql://user:password@host:port/dbname
-
-5. **Add PostgreSQL Database:**
-   - Create new PostgreSQL database instance
-   - Use connection string in DATABASE_URL
+   - DATABASE_URL=postgresql://postgres:password@db.your-project-ref.supabase.co:5432/postgres?schema=public&sslmode=require
 
 6. **Deploy:**
-   - Render will detect Dockerfile and build image
-   - Runs migrations on deploy
+   - Render will use `npm ci && npm run build`
+   - Render will start with `npm run migrate && npm start`
+   - Health check path is `/api/health`
 
 #### Important Notes:
 
 - Free tier available ($0/month, services spin down after 15 min inactivity)
 - Paid tier ($7+/month) recommended for production
+- See `RENDER_DEPLOY.md` for the exact repository-based setup
 
 ### Option 3: AWS EC2 + RDS
 

@@ -1,7 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { runMigrations } from "./utils/runMigrations";
 import healthRoutes from "./routes/health";
 import companyCollectionRoutes from "./routes/companyCollection";
 import bookmarkCollectionRoutes from "./routes/bookmarkCollection";
@@ -11,9 +10,21 @@ dotenv.config();
 
 const app: Express = express();
 const PORT = parseInt(process.env.PORT || "5000", 10);
+const allowedOrigin = process.env.CORS_ORIGIN;
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!allowedOrigin || !origin || origin === allowedOrigin) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin not allowed by CORS"));
+    },
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -50,9 +61,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 async function startServer() {
-  // Migrations are handled in Dockerfile
   if (process.env.NODE_ENV === "production") {
-    console.log("✅ Database is ready (migrations run at container startup)");
+    console.log("✅ Production mode enabled");
+    console.log(`🌐 Allowed CORS origin: ${allowedOrigin || "not set"}`);
   }
 
   app.listen(PORT, "0.0.0.0", () => {
