@@ -19,11 +19,13 @@ Set these in the Render dashboard:
 DATABASE_URL=postgresql://postgres:YOUR_SUPABASE_PASSWORD@db.kxhsuzulmnpixxyzeadj.supabase.co:5432/postgres?schema=public&sslmode=require
 JWT_SECRET=your-32-plus-character-random-secret
 NODE_ENV=production
-CORS_ORIGIN=https://your-frontend-domain.com
+CORS_ORIGIN=*
+PUBLIC_API_BASE_URL=https://your-render-service.onrender.com
 ```
 
 Do not set `PORT` manually on Render. Render injects it automatically and the app already reads it.
 Do not reuse the local development JWT secret in Render. Tokens are only valid within the environment that signed them.
+Use `CORS_ORIGIN=*` only as a temporary unblock/debug setting. For a locked-down deployment, replace it with your real frontend origin.
 
 ## Repo Configuration
 
@@ -60,6 +62,8 @@ Expected result:
 
 Then test:
 
+- open `https://your-render-service.onrender.com/api/openapi.json`
+- confirm `servers[0].url` is exactly `https://your-render-service.onrender.com`
 - open `https://your-render-service.onrender.com/api/docs`
 - confirm Swagger sends requests to the Render host, not `localhost`
 - login with an imported user
@@ -68,7 +72,8 @@ Then test:
 
 ## Notes
 
-- Production CORS is now restricted to the single value in `CORS_ORIGIN`.
+- `CORS_ORIGIN=*` now means allow any browser origin.
+- `PUBLIC_API_BASE_URL` is the most reliable way to make Swagger work correctly on Render.
 - Swagger bearer auth expects only the raw token value. Do not paste `Bearer ` in the authorize dialog.
 - Seed scripts should not be used in production.
 - Prisma migrations run at startup through the Render start command.

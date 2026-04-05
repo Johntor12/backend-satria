@@ -6,7 +6,12 @@ import docsRoutes from "./routes/docs";
 import companyCollectionRoutes from "./routes/companyCollection";
 import bookmarkCollectionRoutes from "./routes/bookmarkCollection";
 import authRoutes from "./routes/authRoutes";
-import { getJwtSecret, getPublicRuntimeConfig, isOriginAllowed } from "./config/env";
+import {
+  getJwtSecret,
+  getPublicApiBaseUrl,
+  getPublicRuntimeConfig,
+  isOriginAllowed,
+} from "./config/env";
 
 dotenv.config();
 
@@ -88,14 +93,20 @@ async function startServer() {
 
   if (runtimeConfig.nodeEnv === "production") {
     getJwtSecret();
+    getPublicApiBaseUrl();
   }
 
   if (process.env.NODE_ENV === "production") {
     console.log("✅ Production mode enabled");
   }
 
-  console.log(`🌐 Allowed CORS origins: ${runtimeConfig.allowedOrigins.join(", ") || "same-origin only"}`);
+  const corsMode = runtimeConfig.wildcardOrigin
+    ? "wildcard (*)"
+    : runtimeConfig.allowedOrigins.join(", ") || "same-origin only";
+
+  console.log(`🌐 Allowed CORS origins: ${corsMode}`);
   console.log(`🔐 JWT configured: ${runtimeConfig.jwtConfigured ? "yes" : "development fallback"}`);
+  console.log(`🔗 Public API base URL: ${runtimeConfig.publicApiBaseUrl || "derived from request"}`);
 
   app.listen(PORT, "0.0.0.0", () => {
     const bindHost = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
