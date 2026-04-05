@@ -3,6 +3,16 @@ const DEFAULT_DEV_JWT_SECRET = "your_jwt_secret_key_change_this";
 const normalizeOrigin = (value: string): string => value.trim().replace(/\/+$/, "");
 const normalizeBaseUrl = (value: string): string => value.trim().replace(/\/+$/, "");
 const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value);
+const DEFAULT_DEV_ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:4173",
+  "http://localhost:5000",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:4173",
+  "http://127.0.0.1:5000",
+  "http://127.0.0.1:5173",
+];
 
 const isPlaceholderJwtSecret = (value: string): boolean =>
   value === DEFAULT_DEV_JWT_SECRET || value === "satria-backend";
@@ -27,12 +37,19 @@ export const getJwtSecret = (): string => {
   return rawSecret;
 };
 
-export const getAllowedOrigins = (): string[] =>
-  (process.env.CORS_ORIGIN || "")
+export const getAllowedOrigins = (): string[] => {
+  const configuredOrigins = (process.env.CORS_ORIGIN || "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)
     .map(normalizeOrigin);
+
+  if (isProduction) {
+    return configuredOrigins;
+  }
+
+  return Array.from(new Set([...DEFAULT_DEV_ALLOWED_ORIGINS, ...configuredOrigins]));
+};
 
 export const isWildcardOriginEnabled = (): boolean => getAllowedOrigins().includes("*");
 
