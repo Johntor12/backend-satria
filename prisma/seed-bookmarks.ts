@@ -2,6 +2,10 @@ import { PrismaClient } from "../src/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import {
+  CompanyMethod,
+  toPrismaCompanyMethods,
+} from "../src/constants/companyCollection";
 
 type BookmarkStatusType = "Active" | "Archived";
 
@@ -25,7 +29,24 @@ const hashPassword = async (password: string) => {
   return bcrypt.hash(password, salt);
 };
 
-const companyCollectionData = [
+type SeedCompany = {
+  companyName: string;
+  companyNickname: string;
+  sector: string;
+  riskScore: number;
+  riskTier: "Critical" | "High" | "Medium" | "Low";
+  etr_score: number;
+  margin_score: number;
+  rp_haven_score: number;
+  debt_score: number;
+  ownership_score: number;
+  conduct_score: number;
+  persistence_multiplier: number;
+  methods: CompanyMethod[];
+  revenue: number;
+};
+
+const companyCollectionData: SeedCompany[] = [
   {
     companyName: "TechCorp Industries",
     companyNickname: "TechCorp",
@@ -87,7 +108,7 @@ const companyCollectionData = [
     ownership_score: 6.9,
     conduct_score: 8.2,
     persistence_multiplier: 1.1,
-    methods: ["Transfer Pricing", "Debt Shifting", "Hybrid Mismatch"],
+    methods: ["Transfer Pricing", "Debt Shifting", "Royalty Stripping"],
     revenue: 3200000,
   },
   {
@@ -103,7 +124,7 @@ const companyCollectionData = [
     ownership_score: 4.8,
     conduct_score: 5.9,
     persistence_multiplier: 1.0,
-    methods: ["Transfer Pricing", "IP Optimization"],
+    methods: ["Transfer Pricing", "Royalty Stripping"],
     revenue: 4100000,
   },
   {
@@ -122,7 +143,7 @@ const companyCollectionData = [
     methods: [
       "Transfer Pricing",
       "Debt Shifting",
-      "Hybrid Mismatch",
+      "Shell Layering",
       "Royalty Stripping",
     ],
     revenue: 5500000,
@@ -200,7 +221,7 @@ const bookmarkData = [
       "High-priority companies requiring immediate tax compliance review",
     companyIds: [1, 6], // TechCorp Industries, Financial Services Corp
     status: "Active",
-    notes: "Focus on transfer pricing and hybrid mismatch arrangements",
+    notes: "Focus on transfer pricing and shell layering arrangements",
   },
   {
     name: "High Risk Manufacturing Sector",
@@ -218,7 +239,7 @@ const bookmarkData = [
   },
   {
     name: "Healthcare Sector Deep Dive",
-    description: "Pharmaceutical companies with IP optimization concerns",
+    description: "Pharmaceutical companies with royalty stripping concerns",
     companyIds: [5], // Pharmaceutical Innovations
     status: "Archived",
     notes: "IP valuation and royalty arrangements reviewed and approved",
@@ -261,6 +282,7 @@ async function main() {
     const created = await prisma.companyCollection.create({
       data: {
         ...company,
+        methods: toPrismaCompanyMethods(company.methods),
         userId: seedUser.id,
       },
     });
@@ -279,7 +301,7 @@ async function main() {
         "High-priority companies requiring immediate tax compliance review",
       companyIndices: [0, 5], // TechCorp Industries (index 0), Financial Services Corp (index 5)
       status: "Active",
-      notes: "Focus on transfer pricing and hybrid mismatch arrangements",
+      notes: "Focus on transfer pricing and shell layering arrangements",
     },
     {
       name: "High Risk Manufacturing Sector",
@@ -297,7 +319,7 @@ async function main() {
     },
     {
       name: "Healthcare Sector Deep Dive",
-      description: "Pharmaceutical companies with IP optimization concerns",
+      description: "Pharmaceutical companies with royalty stripping concerns",
       companyIndices: [4], // Pharmaceutical Innovations (index 4)
       status: "Archived",
       notes: "IP valuation and royalty arrangements reviewed and approved",

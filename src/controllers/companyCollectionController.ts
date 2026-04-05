@@ -6,6 +6,35 @@ import {
   RiskSignals,
 } from "../utils/riskCalculation";
 import { AuthRequest } from "../middleware/authMiddleware";
+import {
+  ALLOWED_COMPANY_METHODS,
+  CompanyMethod,
+  isCompanyMethod,
+  isRiskTier,
+  RiskTierValue,
+  serializeCompanyCollection,
+  sortByRiskTierDescending,
+  toPrismaCompanyMethods,
+} from "../constants/companyCollection";
+
+const parseMethodFilters = (queryValue: unknown): string[] => {
+  if (queryValue === undefined) {
+    return [];
+  }
+
+  const rawValues = Array.isArray(queryValue) ? queryValue : [queryValue];
+
+  return rawValues
+    .flatMap((value) =>
+      typeof value === "string" ? value.split(",") : [],
+    )
+    .map((value) => value.trim())
+    .filter(Boolean);
+};
+
+const validateMethods = (methods: unknown): methods is CompanyMethod[] =>
+  Array.isArray(methods) &&
+  methods.every((method) => typeof method === "string" && isCompanyMethod(method));
 
 export const createCompanyCollection = async (
   req: AuthRequest,
@@ -50,6 +79,13 @@ export const createCompanyCollection = async (
       });
     }
 
+    if (!validateMethods(methods)) {
+      return res.status(400).json({
+        success: false,
+        message: `methods must only contain: ${ALLOWED_COMPANY_METHODS.join(", ")}`,
+      });
+    }
+
     // Prepare signals for calculation
     const signals: RiskSignals = {
       etr_score: etr_score || 0,
@@ -73,7 +109,7 @@ export const createCompanyCollection = async (
         sector,
         riskScore,
         riskTier,
-        methods,
+        methods: toPrismaCompanyMethods(methods),
         revenue: Number(revenue),
         etr_score: signals.etr_score,
         margin_score: signals.margin_score,
@@ -85,7 +121,7 @@ export const createCompanyCollection = async (
       },
     });
 
-    return res.status(201).json({ success: true, data: created });
+    return res.status(201).json({ success: true, data: serializeCompanyCollection(created) });
   } catch (error) {
     console.error("Create CompanyCollection error:", error);
     return res
@@ -100,6 +136,9 @@ export const getAllCompanyCollections = async (
 ) => {
   try {
     const userId = req.userId;
+    const rawRiskTierFilter =
+      typeof req.query.riskTier === "string" ? req.query.riskTier.trim() : undefined;
+    const methodFilters = parseMethodFilters(req.query.method);
 
     if (!userId) {
       return res.status(401).json({
@@ -108,11 +147,47 @@ export const getAllCompanyCollections = async (
       });
     }
 
+    if (rawRiskTierFilter && !isRiskTier(rawRiskTierFilter)) {
+      return res.status(400).json({
+        success: false,
+        message: "riskTier must be one of: Critical, High, Medium, Low",
+      });
+    }
+
+    const riskTierFilter: RiskTierValue | undefined =
+      rawRiskTierFilter && isRiskTier(rawRiskTierFilter)
+        ? rawRiskTierFilter
+        : undefined;
+
+    const invalidMethodFilters = methodFilters.filter((method) => !isCompanyMethod(method));
+    if (invalidMethodFilters.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `method must only contain: ${ALLOWED_COMPANY_METHODS.join(", ")}`,
+      });
+    }
+
+    const validMethodFilters = methodFilters as CompanyMethod[];
+    const prismaMethodFilters = toPrismaCompanyMethods(validMethodFilters);
+
     const list = await prisma.companyCollection.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(riskTierFilter ? { riskTier: riskTierFilter } : {}),
+        ...(prismaMethodFilters.length > 0
+          ? {
+              methods: {
+                hasSome: prismaMethodFilters,
+              },
+            }
+          : {}),
+      },
       orderBy: { createdAt: "desc" },
     });
-    return res.json({ success: true, data: list });
+    return res.json({
+      success: true,
+      data: sortByRiskTierDescending(list).map(serializeCompanyCollection),
+    });
   } catch (error) {
     console.error("Get CompanyCollection list error:", error);
     return res
@@ -151,7 +226,7 @@ export const getCompanyCollectionById = async (
         .json({ success: false, message: "CompanyCollection not found" });
     }
 
-    return res.json({ success: true, data: record });
+    return res.json({ success: true, data: serializeCompanyCollection(record) });
   } catch (error) {
     console.error("Get CompanyCollection by id error:", error);
     return res
@@ -192,6 +267,13 @@ export const updateCompanyCollection = async (
       return res.status(403).json({
         success: false,
         message: "Forbidden",
+      });
+    }
+
+    if (updateData.methods !== undefined && !validateMethods(updateData.methods)) {
+      return res.status(400).json({
+        success: false,
+        message: `methods must only contain: ${ALLOWED_COMPANY_METHODS.join(", ")}`,
       });
     }
 
@@ -266,12 +348,12 @@ export const updateCompanyCollection = async (
         ...updateData,
         methods:
           updateData.methods && Array.isArray(updateData.methods)
-            ? updateData.methods
+            ? toPrismaCompanyMethods(updateData.methods as CompanyMethod[])
             : undefined,
       },
     });
 
-    return res.json({ success: true, data: updated });
+    return res.json({ success: true, data: serializeCompanyCollection(updated) });
   } catch (error) {
     console.error("Update CompanyCollection error:", error);
     return res

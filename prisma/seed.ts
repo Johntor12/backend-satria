@@ -2,6 +2,10 @@ import { PrismaClient } from "../src/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import {
+  CompanyMethod,
+  toPrismaCompanyMethods,
+} from "../src/constants/companyCollection";
 
 // Load environment variables
 dotenv.config();
@@ -23,7 +27,24 @@ const hashPassword = async (password: string) => {
   return bcrypt.hash(password, salt);
 };
 
-const companyCollectionData = [
+type SeedCompany = {
+  companyName: string;
+  companyNickname: string;
+  sector: string;
+  riskScore: number;
+  riskTier: "Critical" | "High" | "Medium" | "Low";
+  etr_score: number;
+  margin_score: number;
+  rp_haven_score: number;
+  debt_score: number;
+  ownership_score: number;
+  conduct_score: number;
+  persistence_multiplier: number;
+  methods: CompanyMethod[];
+  revenue: number;
+};
+
+const companyCollectionData: SeedCompany[] = [
   {
     companyName: "TechCorp Industries",
     companyNickname: "TechCorp",
@@ -214,6 +235,7 @@ async function main() {
     await prisma.companyCollection.create({
       data: {
         ...company,
+        methods: toPrismaCompanyMethods(company.methods),
         userId: seedUser.id,
       },
     });

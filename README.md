@@ -136,7 +136,7 @@ backend-satria/
 | Method | Endpoint                       | Description       | Auth Required |
 | ------ | ------------------------------ | ----------------- | ------------- |
 | POST   | `/api/company-collections`     | Create company    | ✅            |
-| GET    | `/api/company-collections`     | Get all companies | ✅            |
+| GET    | `/api/company-collections`     | Get all companies, ordered by risk tier, with optional `riskTier` and `method` filters | ✅            |
 | GET    | `/api/company-collections/:id` | Get company by ID | ✅            |
 | PUT    | `/api/company-collections/:id` | Update company    | ✅            |
 | DELETE | `/api/company-collections/:id` | Delete company    | ✅            |
@@ -630,7 +630,15 @@ backend-satria/
 #### Get All Companies
 
 - **GET** `/api/company-collections`
-- Returns all company collections
+- Returns all company collections for the current user ordered `Critical -> High -> Medium -> Low`
+- Optional query params:
+  - `riskTier=Critical|High|Medium|Low`
+  - `method=Transfer Pricing` and repeat `method` to match any supplied method
+- Allowed methods:
+  - `Transfer Pricing`
+  - `Debt Shifting`
+  - `Royalty Stripping`
+  - `Shell Layering`
 - Response:
   ```json
   {
@@ -654,6 +662,15 @@ backend-satria/
   }
   ```
 
+- Example filter requests:
+  ```bash
+  curl -X GET "http://localhost:5000/api/company-collections?riskTier=Critical" \
+    -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+
+  curl -X GET "http://localhost:5000/api/company-collections?method=Transfer%20Pricing&method=Debt%20Shifting" \
+    -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+  ```
+
 #### Get Company by ID
 
 - **GET** `/api/company-collections/:id`
@@ -669,11 +686,14 @@ backend-satria/
     "companyName": "New Company Inc",
     "companyNickname": "NewCo",
     "sector": "Technology",
-    "riskScore": 50,
-    "riskTier": "Medium",
-    "etr": 20,
-    "gap": 5,
-    "methods": ["Transfer Pricing"],
+    "methods": ["Transfer Pricing", "Royalty Stripping"],
+    "etr_score": 6.1,
+    "margin_score": 5.2,
+    "rp_haven_score": 4.9,
+    "debt_score": 5.0,
+    "ownership_score": 4.8,
+    "conduct_score": 5.4,
+    "persistence_multiplier": 1.0,
     "revenue": 1000000
   }
   ```

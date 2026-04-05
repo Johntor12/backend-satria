@@ -19,6 +19,13 @@ enum RiskTier {
   Low
 }
 
+enum CompanyMethod {
+  TransferPricing  @map("Transfer Pricing")
+  DebtShifting     @map("Debt Shifting")
+  RoyaltyStripping @map("Royalty Stripping")
+  ShellLayering    @map("Shell Layering")
+}
+
 enum BookmarkStatus {
   Active
   Archived
@@ -52,7 +59,7 @@ model CompanyCollection {
   ownership_score       Float    @default(0)
   conduct_score         Float    @default(0)
   persistence_multiplier Float    @default(1.0)
-  methods               String[]
+  methods               CompanyMethod[]
   revenue               Int
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

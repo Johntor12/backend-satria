@@ -1,8 +1,19 @@
 import { Response } from "express";
 import prisma from "../prisma/client";
 import { AuthRequest } from "../middleware/authMiddleware";
+import { serializeCompanyCollection } from "../constants/companyCollection";
 
 type BookmarkStatusType = "Active" | "Archived";
+
+const serializeBookmark = <T extends { companies: Array<{ company: any }> }>(bookmark: T) => ({
+  ...bookmark,
+  companies: bookmark.companies.map((bookmarkCompany) => ({
+    ...bookmarkCompany,
+    company: bookmarkCompany.company
+      ? serializeCompanyCollection(bookmarkCompany.company)
+      : bookmarkCompany.company,
+  })),
+});
 
 export const createBookmark = async (req: AuthRequest, res: Response) => {
   try {
@@ -59,7 +70,7 @@ export const createBookmark = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    return res.status(201).json({ success: true, data: created });
+    return res.status(201).json({ success: true, data: serializeBookmark(created) });
   } catch (error) {
     console.error("Create Bookmark error:", error);
     return res.status(500).json({ success: false, message: "Internal server error", error });
@@ -91,7 +102,7 @@ export const getAllCompaniesByStatus = async (req: AuthRequest, res: Response) =
     bookmarks.forEach((bookmark) => {
       bookmark.companies.forEach((bc) => {
         if (bc.company && !uniqueCompanies.has(bc.company.id)) {
-          uniqueCompanies.set(bc.company.id, bc.company);
+          uniqueCompanies.set(bc.company.id, serializeCompanyCollection(bc.company));
         }
       });
     });
@@ -114,7 +125,7 @@ export const getAllBookmarks = async (req: AuthRequest, res: Response) => {
       include: { companies: { include: { company: true } } },
     });
 
-    return res.json({ success: true, data: list });
+    return res.json({ success: true, data: list.map(serializeBookmark) });
   } catch (error) {
     console.error("Get Bookmark list error:", error);
     return res.status(500).json({ success: false, message: "Internal server error", error });
@@ -135,7 +146,7 @@ export const getBookmarkById = async (req: AuthRequest, res: Response) => {
     if (!item) { return res.status(404).json({ success: false, message: "Bookmark not found" }); }
     if (item.userId !== userId) { return res.status(403).json({ success: false, message: "Forbidden" }); }
 
-    return res.json({ success: true, data: item });
+    return res.json({ success: true, data: serializeBookmark(item) });
   } catch (error) {
     console.error("Get Bookmark by id error:", error);
     return res.status(500).json({ success: false, message: "Internal server error", error });
@@ -158,7 +169,7 @@ export const getAllBookmarksByStatus = async (req: AuthRequest, res: Response) =
       include: { companies: { include: { company: true } } },
     });
 
-    return res.json({ success: true, data: list });
+    return res.json({ success: true, data: list.map(serializeBookmark) });
   } catch (error) {
     console.error("Get Bookmark by status error:", error);
     return res.status(500).json({ success: false, message: "Internal server error", error });
@@ -206,7 +217,7 @@ export const updateBookmark = async (req: AuthRequest, res: Response) => {
       include: { companies: { include: { company: true } } },
     });
 
-    return res.json({ success: true, data: updated });
+    return res.json({ success: true, data: serializeBookmark(updated) });
   } catch (error) {
     console.error("Update Bookmark error:", error);
     return res.status(500).json({ success: false, message: "Internal server error", error });

@@ -1,4 +1,8 @@
 import { OpenAPIV3 } from "openapi-types";
+import {
+  ALLOWED_COMPANY_METHODS,
+  ALLOWED_RISK_TIERS,
+} from "../constants/companyCollection";
 
 const errorResponse: OpenAPIV3.SchemaObject = {
   type: "object",
@@ -98,7 +102,11 @@ const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
       },
       RiskTier: {
         type: "string",
-        enum: ["Critical", "High", "Medium", "Low"],
+        enum: [...ALLOWED_RISK_TIERS],
+      },
+      CompanyMethod: {
+        type: "string",
+        enum: [...ALLOWED_COMPANY_METHODS],
       },
       BookmarkStatus: {
         type: "string",
@@ -134,7 +142,10 @@ const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
           sector: { type: "string", example: "Technology" },
           riskScore: { type: "integer", example: 85, readOnly: true },
           riskTier: { $ref: "#/components/schemas/RiskTier" },
-          methods: { type: "array", items: { type: "string" } },
+          methods: {
+            type: "array",
+            items: { $ref: "#/components/schemas/CompanyMethod" },
+          },
           revenue: { type: "integer", example: 2500000 },
           etr_score: { type: "number", format: "double", example: 8.5 },
           margin_score: { type: "number", format: "double", example: 7.2 },
@@ -154,7 +165,10 @@ const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
           companyName: { type: "string" },
           companyNickname: { type: "string" },
           sector: { type: "string" },
-          methods: { type: "array", items: { type: "string" } },
+          methods: {
+            type: "array",
+            items: { $ref: "#/components/schemas/CompanyMethod" },
+          },
           revenue: { type: "integer", example: 2500000 },
           etr_score: { type: "number", format: "double" },
           margin_score: { type: "number", format: "double" },
@@ -171,7 +185,10 @@ const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
           companyName: { type: "string" },
           companyNickname: { type: "string" },
           sector: { type: "string" },
-          methods: { type: "array", items: { type: "string" } },
+          methods: {
+            type: "array",
+            items: { $ref: "#/components/schemas/CompanyMethod" },
+          },
           revenue: { type: "integer" },
           etr_score: { type: "number", format: "double" },
           margin_score: { type: "number", format: "double" },
@@ -406,6 +423,25 @@ const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
         tags: ["Company Collections"],
         summary: "List company collections for the current user",
         security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: "riskTier",
+            in: "query",
+            required: false,
+            schema: { $ref: "#/components/schemas/RiskTier" },
+            description: "Filter companies by risk tier.",
+          },
+          {
+            name: "method",
+            in: "query",
+            required: false,
+            schema: { $ref: "#/components/schemas/CompanyMethod" },
+            style: "form",
+            explode: true,
+            description:
+              "Filter by one or more methods. Repeat the query param to match any supplied method.",
+          },
+        ],
         responses: {
           "200": {
             description: "Company collections returned",
@@ -415,6 +451,7 @@ const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
               },
             },
           },
+          "400": { description: "Invalid filter value", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
           "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
           "500": { description: "Internal server error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
         },
