@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { getJwtSecret } from "../config/env";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key_change_this";
 const SALT_ROUNDS = 10;
 
 // Hash password
@@ -30,7 +30,7 @@ export const comparePassword = async (
 // Generate JWT token
 export const generateToken = (userId: number): string => {
   try {
-    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId }, getJwtSecret(), { expiresIn: "7d" });
     return token;
   } catch (error) {
     throw new Error("Error generating token");
@@ -38,11 +38,17 @@ export const generateToken = (userId: number): string => {
 };
 
 // Verify JWT token
-export const verifyToken = (token: string): { userId: number } | null => {
+export const verifyToken = (
+  token: string,
+): { valid: true; userId: number } | { valid: false; reason: "expired" | "invalid" } => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-    return decoded;
+    const decoded = jwt.verify(token, getJwtSecret()) as { userId: number };
+    return { valid: true, userId: decoded.userId };
   } catch (error) {
-    return null;
+    if (error instanceof jwt.TokenExpiredError) {
+      return { valid: false, reason: "expired" };
+    }
+
+    return { valid: false, reason: "invalid" };
   }
 };

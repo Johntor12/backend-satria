@@ -23,6 +23,7 @@ CORS_ORIGIN=https://your-frontend-domain.com
 ```
 
 Do not set `PORT` manually on Render. Render injects it automatically and the app already reads it.
+Do not reuse the local development JWT secret in Render. Tokens are only valid within the environment that signed them.
 
 ## Repo Configuration
 
@@ -59,6 +60,8 @@ Expected result:
 
 Then test:
 
+- open `https://your-render-service.onrender.com/api/docs`
+- confirm Swagger sends requests to the Render host, not `localhost`
 - login with an imported user
 - `GET /api/company-collections` with a valid JWT
 - one create request for bookmarks or companies
@@ -66,5 +69,6 @@ Then test:
 ## Notes
 
 - Production CORS is now restricted to the single value in `CORS_ORIGIN`.
+- Swagger bearer auth expects only the raw token value. Do not paste `Bearer ` in the authorize dialog.
 - Seed scripts should not be used in production.
 - Prisma migrations run at startup through the Render start command.

@@ -163,6 +163,7 @@ backend-satria/
 
 - Swagger UI: `/api/docs`
 - OpenAPI JSON: `/api/openapi.json`
+- Swagger automatically uses the current host, so docs opened on Render call the Render API and docs opened locally call localhost.
 
 ## 🔐 Authentication
 
@@ -212,6 +213,8 @@ Response includes JWT token:
 curl -X GET http://localhost:5000/api/company-collections \
   -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
 ```
+
+In Swagger's `Authorize` dialog, paste only `YOUR_JWT_TOKEN_HERE`. Swagger adds the `Bearer` prefix automatically.
 
 ## 🧮 Risk Assessment
 

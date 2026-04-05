@@ -12,7 +12,7 @@ const errorResponse: OpenAPIV3.SchemaObject = {
   },
 };
 
-const openApiDocument: OpenAPIV3.Document = {
+const baseOpenApiDocument: Omit<OpenAPIV3.Document, "servers"> = {
   openapi: "3.0.3",
   info: {
     title: "Satria Backend API",
@@ -20,16 +20,14 @@ const openApiDocument: OpenAPIV3.Document = {
     description:
       "Interactive API documentation for authentication, company collections, bookmarks, and health endpoints.",
   },
-  servers: [
-    { url: "http://localhost:5000", description: "Local development" },
-    { url: "https://your-render-service.onrender.com", description: "Production example" },
-  ],
   components: {
     securitySchemes: {
       bearerAuth: {
         type: "http",
         scheme: "bearer",
         bearerFormat: "JWT",
+        description:
+          "Paste only the raw JWT token here. Swagger will add the Bearer prefix automatically.",
       },
     },
     schemas: {
@@ -636,4 +634,7 @@ const openApiDocument: OpenAPIV3.Document = {
   },
 };
 
-export default openApiDocument;
+export const buildOpenApiDocument = (serverUrl: string): OpenAPIV3.Document => ({
+  ...baseOpenApiDocument,
+  servers: [{ url: serverUrl, description: "Current server" }],
+});

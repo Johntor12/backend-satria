@@ -6,26 +6,47 @@ import docsRoutes from "./routes/docs";
 import companyCollectionRoutes from "./routes/companyCollection";
 import bookmarkCollectionRoutes from "./routes/bookmarkCollection";
 import authRoutes from "./routes/authRoutes";
+import { getJwtSecret, getPublicRuntimeConfig, isOriginAllowed } from "./config/env";
 
 dotenv.config();
 
 const app: Express = express();
 const PORT = parseInt(process.env.PORT || "5000", 10);
-const allowedOrigin = process.env.CORS_ORIGIN;
+
+app.set("trust proxy", 1);
+
+const getRequestOrigin = (req: Request): string | null => {
+  const forwardedProtoHeader = req.headers["x-forwarded-proto"];
+  const forwardedHostHeader = req.headers["x-forwarded-host"];
+
+  const forwardedProto = Array.isArray(forwardedProtoHeader)
+    ? forwardedProtoHeader[0]
+    : forwardedProtoHeader?.split(",")[0]?.trim();
+  const forwardedHost = Array.isArray(forwardedHostHeader)
+    ? forwardedHostHeader[0]
+    : forwardedHostHeader?.split(",")[0]?.trim();
+
+  const protocol = forwardedProto || req.protocol;
+  const host = forwardedHost || req.get("host");
+
+  return host ? `${protocol}://${host}` : null;
+};
 
 // Middleware
-app.use(
+app.use((req: Request, res: Response, next: NextFunction) => {
   cors({
     origin(origin, callback) {
-      if (!allowedOrigin || !origin || origin === allowedOrigin) {
+      const requestOrigin = getRequestOrigin(req);
+
+      if (!origin || isOriginAllowed(origin) || origin === requestOrigin) {
         callback(null, true);
         return;
       }
 
       callback(new Error("Origin not allowed by CORS"));
     },
-  }),
-);
+  })(req, res, next);
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -63,13 +84,22 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 async function startServer() {
-  if (process.env.NODE_ENV === "production") {
-    console.log("✅ Production mode enabled");
-    console.log(`🌐 Allowed CORS origin: ${allowedOrigin || "not set"}`);
+  const runtimeConfig = getPublicRuntimeConfig();
+
+  if (runtimeConfig.nodeEnv === "production") {
+    getJwtSecret();
   }
 
+  if (process.env.NODE_ENV === "production") {
+    console.log("✅ Production mode enabled");
+  }
+
+  console.log(`🌐 Allowed CORS origins: ${runtimeConfig.allowedOrigins.join(", ") || "same-origin only"}`);
+  console.log(`🔐 JWT configured: ${runtimeConfig.jwtConfigured ? "yes" : "development fallback"}`);
+
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    const bindHost = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
+    console.log(`🚀 Server is running on http://${bindHost}:${PORT}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV}`);
   });
 }
