@@ -36,6 +36,27 @@ const validateMethods = (methods: unknown): methods is CompanyMethod[] =>
   Array.isArray(methods) &&
   methods.every((method) => typeof method === "string" && isCompanyMethod(method));
 
+type CompanyCollectionListRow = {
+  id: number;
+  userId: number;
+  companyName: string;
+  companyNickname: string;
+  sector: string;
+  riskScore: number;
+  riskTier: RiskTierValue;
+  etr_score: number;
+  margin_score: number;
+  rp_haven_score: number;
+  debt_score: number;
+  ownership_score: number;
+  conduct_score: number;
+  persistence_multiplier: number;
+  methods: CompanyMethod[] | null;
+  revenue: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export const createCompanyCollection = async (
   req: AuthRequest,
   res: Response,
@@ -168,25 +189,73 @@ export const getAllCompanyCollections = async (
     }
 
     const validMethodFilters = methodFilters as CompanyMethod[];
-    const prismaMethodFilters = toPrismaCompanyMethods(validMethodFilters);
 
-    const list = await prisma.companyCollection.findMany({
-      where: {
-        userId,
-        ...(riskTierFilter ? { riskTier: riskTierFilter } : {}),
-        ...(prismaMethodFilters.length > 0
-          ? {
-              methods: {
-                hasSome: prismaMethodFilters,
-              },
-            }
-          : {}),
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const queryParams: Array<number | string | string[]> = [userId];
+    const whereClauses: string[] = [`cc."userId" = $1`];
+
+    if (riskTierFilter) {
+      queryParams.push(riskTierFilter);
+      whereClauses.push(`cc."riskTier"::text = $${queryParams.length}`);
+    }
+
+    if (validMethodFilters.length > 0) {
+      queryParams.push(validMethodFilters);
+      whereClauses.push(`
+        EXISTS (
+          SELECT 1
+          FROM unnest(cc."methods") AS method_value
+          WHERE method_value::text = ANY($${queryParams.length}::text[])
+        )
+      `);
+    }
+
+    const list = await prisma.$queryRawUnsafe<CompanyCollectionListRow[]>(
+      `
+      SELECT
+        cc."id",
+        cc."userId",
+        cc."companyName",
+        cc."companyNickname",
+        cc."sector",
+        cc."riskScore",
+        cc."riskTier"::text AS "riskTier",
+        cc."etr_score",
+        cc."margin_score",
+        cc."rp_haven_score",
+        cc."debt_score",
+        cc."ownership_score",
+        cc."conduct_score",
+        cc."persistence_multiplier",
+        ARRAY(
+          SELECT method_value::text
+          FROM unnest(cc."methods") AS method_value
+        ) AS "methods",
+        cc."revenue",
+        cc."createdAt",
+        cc."updatedAt"
+      FROM "CompanyCollection" cc
+      WHERE ${whereClauses.join(" AND ")}
+      ORDER BY
+        CASE cc."riskTier"::text
+          WHEN 'Critical' THEN 1
+          WHEN 'High' THEN 2
+          WHEN 'Medium' THEN 3
+          WHEN 'Low' THEN 4
+          ELSE 5
+        END,
+        cc."createdAt" DESC
+      `,
+      ...queryParams,
+    );
+
     return res.json({
       success: true,
-      data: sortByRiskTierDescending(list).map(serializeCompanyCollection),
+      data: sortByRiskTierDescending(
+        list.map((company) => ({
+          ...company,
+          methods: company.methods || [],
+        })),
+      ),
     });
   } catch (error) {
     console.error("Get CompanyCollection list error:", error);

@@ -18,6 +18,7 @@ export type CompanyMethod = (typeof ALLOWED_COMPANY_METHODS)[number];
 export type RiskTierValue = (typeof ALLOWED_RISK_TIERS)[number];
 export type PrismaCompanyMethodValue =
   (typeof PrismaCompanyMethod)[keyof typeof PrismaCompanyMethod];
+type CompanyMethodLike = PrismaCompanyMethodValue | CompanyMethod | string;
 
 const METHOD_SET = new Set<string>(ALLOWED_COMPANY_METHODS);
 const RISK_TIER_SET = new Set<string>(ALLOWED_RISK_TIERS);
@@ -48,11 +49,19 @@ export const toPrismaCompanyMethods = (
 ): PrismaCompanyMethodValue[] => methods.map((method) => API_TO_PRISMA_METHOD[method]);
 
 export const toApiCompanyMethods = (
-  methods: PrismaCompanyMethodValue[],
-): CompanyMethod[] => methods.map((method) => PRISMA_TO_API_METHOD[method]);
+  methods: CompanyMethodLike[],
+): CompanyMethod[] =>
+  methods.flatMap((method) => {
+    if (isCompanyMethod(method)) {
+      return [method];
+    }
+
+    const mappedMethod = PRISMA_TO_API_METHOD[method as PrismaCompanyMethodValue];
+    return mappedMethod ? [mappedMethod] : [];
+  });
 
 export const serializeCompanyCollection = <
-  T extends { methods: PrismaCompanyMethodValue[] },
+  T extends { methods: CompanyMethodLike[] },
 >(
   company: T,
 ): Omit<T, "methods"> & { methods: CompanyMethod[] } => ({
